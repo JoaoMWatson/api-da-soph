@@ -1,10 +1,12 @@
 from typing import Optional
 
 from fastapi import FastAPI
-from fastapi.openapi.utils import get_openapi
 from pydantic import BaseModel
 
+from custom_openapi import custom_openapi
+
 app = FastAPI()
+app.openapi = custom_openapi(app)
 
 
 class Product(BaseModel):
@@ -19,22 +21,12 @@ class Products(BaseModel):
 
 
 @app.get('/', status_code=200, response_model=Products)
-def first_route():
+def produtos():
     """Retorna produtos"""
     return Products(count=1, produtos=[Product(id=1, name='eu', size='m')])
 
 
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title='Api de produtos',
-        version='0.1.0',
-        description='Essa api de produtos é daora d+',
-        routes=app.routes,
-    )
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-app.openapi = custom_openapi
+@app.get('/healthcheck')
+def healthcheck():
+    """Status da aplicação"""
+    return {'status': 'ok'}
